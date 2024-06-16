@@ -1,0 +1,58 @@
+---
+Checks: "bugprone-*,
+         performance-*,
+		 modernize-*,
+		 readability-*,
+         # clang-analyzer-*,
+         # cppcoreguidelines-*,
+         misc-*,
+         # DISABLE SOME CHECKS:
+		 -bugprone-easily-swappable-parameters,
+         -bugprone-reserved-identifier,
+		 -performance-noexcept-move-constructor,
+		 -modernize-avoid-c-arrays,
+		 -modernize-use-auto,
+		 -readability-magic-numbers,
+		 -readability-identifier-length,
+		 -readability-uppercase-literal-suffix,
+         -readability-function-cognitive-complexity,
+		 -readability-convert-member-functions-to-static,
+         -readability-static-accessed-through-instance,
+		 -readability-named-parameter,
+         -readability-function-cognitive-complexity,
+         -readability-else-after-return,
+         -cppcoreguidelines-avoid-magic-numbers,
+         -cppcoreguidelines-pro-type-union-access,
+         -cppcoreguidelines-pro-bounds-pointer-arithmetic,
+         -cppcoreguidelines-pro-type-reinterpret-cast,
+         -cppcoreguidelines-macro-usage,
+         -misc-non-private-member-variables-in-classes,
+		 -misc-unused-using-decls,
+         -misc-unconventional-assign-operator,
+        "
+
+WarningsAsErrors: ''
+HeaderFilterRegex: ^src
+FormatStyle: file
+
+CheckOptions:
+  - { key: readability-identifier-naming.VariableCase,            value: lower_case }
+  - { key: readability-identifier-naming.MemberCase,              value: lower_case }
+  - { key: readability-identifier-naming.FunctionCase,            value: lower_case }
+  - { key: readability-identifier-naming.NamespaceCase,           value: lower_case }
+  - { key: readability-identifier-naming.StructCase,              value: lower_case }
+  - { key: readability-identifier-naming.ClassCase,               value: lower_case }
+  - { key: readability-identifier-naming.TypeAliasCase,           value: lower_case }
+  - { key: readability-identifier-naming.TypedefCase,             value: lower_case }
+  - { key: readability-identifier-naming.PointerParameterPrefix,  value: p_ }
+  - { key: readability-identifier-naming.LocalPointerPrefix,      value: p_ }
+  - { key: readability-identifier-naming.LocalConstantPointerPrefix,     value: p_ }
+  - { key: readability-identifier-naming.PrivateMemberPrefix,     value: m_ }
+  - { key: readability-identifier-naming.PrivateMemberIgnoredRegexp,     value: '_' }
+  - { key: readability-identifier-length.IgnoredParameterNames,   value: '[tuxy]' }
+  - { key: readability-identifier-naming.TemplateParameterIgnoredRegexp, value: '[A-Z]' }
+  - { key: readability-identifier-naming.TypeAliasIgnoredRegexp,  value: '[A-Z]' }
+  - { key: readability-identifier-naming.TypedefIgnoredRegexp,    value: '[A-Z]' }
+  - { key: performance-unnecessary-value-param.AllowedTypes,      value: string;span;io_vector }
+  - { key: readability-operators-representation.BinaryOperators,  value: '&&;&=;&;|;~;!;!=;||;|=;^;^=' }
+...
