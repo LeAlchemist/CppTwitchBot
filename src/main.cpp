@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <thread>
 
 namespace beast = boost::beast;  // from <boost/beast.hpp>
 namespace net = boost::asio;     // from <boost/asio.hpp>
@@ -55,6 +56,14 @@ write_message(boost::string_view message) {
     stream.write_some(boost::asio::buffer(message_sent.str()));
     println(message_sent);
     message_sent.str("");  // Empty the string buffer
+}
+
+void
+console_message() {
+    std::string console;
+
+    getline(std::cin, console);
+    write_message(console);
 }
 
 // this reads the chat and send a few responses based on basic text parsing
@@ -108,12 +117,13 @@ auto
 main() -> int {
     connect_to_twitch();
 
-    // Make message.
-    write_message("this is a message");
-
-    write_message("this is a second message");
-
     while (true) {
         process_chat();
     }
+
+    std::jthread input([&] {
+        while (true) {
+            console_message();
+        }
+    });
 }
