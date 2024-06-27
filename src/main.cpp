@@ -4,8 +4,6 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
-#include <boost/chrono.hpp>
-#include <boost/date_time.hpp>
 
 #include <iostream>
 #include <sstream>
@@ -14,6 +12,7 @@
 namespace beast = boost::beast;  // from <boost/beast.hpp>
 namespace net = boost::asio;     // from <boost/asio.hpp>
 using tcp = net::ip::tcp;        // from <boost/asio/ip/tcp.hpp>
+using system_clock = std::chrono::system_clock;
 
 constexpr std::string_view host = "irc.chat.twitch.tv";
 constexpr std::string_view port = "6667";
@@ -34,8 +33,8 @@ inline beast::tcp_stream stream(ioc);
 
 void
 println(std::string_view str) {
-    auto const now = std::chrono::system_clock::now();
-    std::time_t const t_c = std::chrono::system_clock::to_time_t(now);
+    auto const now = system_clock::now();
+    std::time_t const t_c = system_clock::to_time_t(now);
     // TODO: Replace this with fmt or something.
     std::cout << std::ctime(&t_c) << str << '\n';
 }
@@ -44,9 +43,9 @@ void
 println(auto&& str)
     requires(requires { str.str(); })
 {
-    auto const now = std::chrono::system_clock::now();
-    std::time_t const t_c = std::chrono::system_clock::to_time_t(now);
-    
+    auto const now = system_clock::now();
+    std::time_t const t_c = system_clock::to_time_t(now);
+
     std::cout << std::ctime(&t_c) << fwd(str).str() << '\n';
 }
 
