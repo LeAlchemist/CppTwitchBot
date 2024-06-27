@@ -4,6 +4,8 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
+#include <boost/chrono.hpp>
+#include <boost/date_time.hpp>
 
 #include <iostream>
 #include <sstream>
@@ -32,15 +34,20 @@ inline beast::tcp_stream stream(ioc);
 
 void
 println(std::string_view str) {
+    auto const now = std::chrono::system_clock::now();
+    std::time_t const t_c = std::chrono::system_clock::to_time_t(now);
     // TODO: Replace this with fmt or something.
-    std::cout << str << '\n';
+    std::cout << std::ctime(&t_c) << str << '\n';
 }
 
 void
 println(auto&& str)
     requires(requires { str.str(); })
 {
-    std::cout << fwd(str).str() << '\n';
+    auto const now = std::chrono::system_clock::now();
+    std::time_t const t_c = std::chrono::system_clock::to_time_t(now);
+    
+    std::cout << std::ctime(&t_c) << fwd(str).str() << '\n';
 }
 
 void
@@ -117,13 +124,13 @@ auto
 main() -> int {
     connect_to_twitch();
 
-    while (true) {
-        process_chat();
-    }
-
     std::jthread input([&] {
         while (true) {
             console_message();
         }
     });
+
+    while (true) {
+        process_chat();
+    }
 }
