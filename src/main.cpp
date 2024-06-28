@@ -5,9 +5,13 @@
 #include <boost/beast/http.hpp>
 #include <boost/beast/version.hpp>
 
+#include <bits/stdc++.h>
 #include <iostream>
 #include <sstream>
+#include <string_view>
 #include <thread>
+
+#include "boost/utility/string_view_fwd.hpp"
 
 namespace beast = boost::beast;  // from <boost/beast.hpp>
 namespace net = boost::asio;     // from <boost/asio.hpp>
@@ -84,6 +88,21 @@ process_chat() {
     if (message.contains("tmi.twitch.tv")) {
         if (message.contains("tmi.twitch.tv PRIVMSG")) {
             // TODO: Parse message info here
+            // get the username
+            constexpr boost::string_view display_name = "display-name=";
+            int chat_user_pos = message.find(display_name);
+            assert(chat_user_pos != message.npos);
+            int slash_pos =
+                message.find(';', chat_user_pos + display_name.size());
+            std::string chat_user(
+                message.data() + chat_user_pos + display_name.size(),
+                slash_pos - (chat_user_pos + display_name.size()));
+
+            std::transform(chat_user.begin(), chat_user.end(),
+                           chat_user.begin(), ::tolower);
+
+            std::cout << chat_user << "\n";
+
             println(message_receive);
         } else {
             println(message_receive);
