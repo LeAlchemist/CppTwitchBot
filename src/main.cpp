@@ -82,7 +82,12 @@ process_chat() {
     boost::string_view const message(message_receive);
 
     if (message.contains("tmi.twitch.tv")) {
-        println(message_receive);
+        if (message.contains("tmi.twitch.tv PRIVMSG")) {
+            // TODO: Parse message info here
+            println(message_receive);
+        } else {
+            println(message_receive);
+        }
 
         // this is to respond to the "keep alive" check
         if (message.contains("PING :tmi.twitch.tv")) {
