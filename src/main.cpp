@@ -98,10 +98,12 @@ process_chat() {
                 message.data() + chat_user_pos + display_name.size(),
                 slash_pos - (chat_user_pos + display_name.size()));
 
+            // make user name lower case
+            std::string chat_user_lower = chat_user;
             std::transform(chat_user.begin(), chat_user.end(),
-                           chat_user.begin(), ::tolower);
+                           chat_user_lower.begin(), ::tolower);
 
-            std::cout << chat_user << "\n";
+            std::cout << chat_user << chat_user_lower << "\n";
 
             println(message_receive);
         } else {
