@@ -167,7 +167,6 @@ process_chat() {
                 message.data() + chat_start + chat_start_user.size(), 512);
 
             // plain text message
-            println(message_receive);
             println(chat_user + ": " + chat_msg);
         } else {
             println(message_receive);
