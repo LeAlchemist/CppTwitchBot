@@ -131,11 +131,20 @@ process_chat() {
                 message.data() + subscriber_start + subscriber.size(),
                 subscriber_end - (subscriber_start + subscriber.size()));
             bool issubbed = lexical_cast<bool>(subbed);
-            std::cout << issubbed << "\n";
 
             // get if user is broadcaster
 
             // get if user is a moderator
+            // checking to see if "mod=" is true or false
+            std::string moderator = "mod=";
+            std::size_t moderator_start = message.find(moderator);
+            assert(moderator_start != message.npos);
+            std::size_t moderator_end =
+                message.find(';', moderator_start + moderator.size());
+            std::string mod(
+                message.data() + moderator_start + moderator.size(),
+                moderator_end - (moderator_start + moderator.size()));
+            bool ismod = lexical_cast<bool>(subbed);
 
             // parse out chat message
             std::string chat_start_user =
