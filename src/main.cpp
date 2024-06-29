@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <string_view>
 #include <thread>
 
@@ -104,11 +105,11 @@ process_chat() {
                            chat_user_lower.begin(), ::tolower);
 
             // parse out chat message
-            std::string chat_start_user = "#" + chat_user_lower + " :";
+            std::string chat_start_user =
+                "#" + std::string(twitch_channel) + " :";
             int chat_start = message.find(chat_start_user);
             std::string chat_msg(
-                message.data() + chat_start + chat_start_user.size(),
-                (chat_start_user.size() + 512));
+                message.data() + chat_start + chat_start_user.size(), 512);
 
             // plain text message
             println(chat_user + ": " + chat_msg);
