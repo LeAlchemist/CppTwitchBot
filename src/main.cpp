@@ -72,8 +72,7 @@ write_message(boost::string_view message) {
 void
 console_message() {
     std::string console;
-
-    getline(std::cin, console);
+    std::getline(std::cin, console);
     write_message(console);
 }
 
