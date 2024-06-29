@@ -90,18 +90,26 @@ process_chat() {
             // TODO: Parse message info here
             // get the username
             std::string display_name = "display-name=";
-            std::size_t chat_user_pos = message.find(display_name);
-            assert(chat_user_pos != message.npos);
-            std::size_t slash_pos =
-                message.find(';', chat_user_pos + display_name.size());
+            std::size_t chat_user_start = message.find(display_name);
+            assert(chat_user_start != message.npos);
+            std::size_t chat_user_end =
+                message.find(';', chat_user_start + display_name.size());
             std::string chat_user(
-                message.data() + chat_user_pos + display_name.size(),
-                slash_pos - (chat_user_pos + display_name.size()));
+                message.data() + chat_user_start + display_name.size(),
+                chat_user_end - (chat_user_start + display_name.size()));
 
             // make user name lower case
             std::string chat_user_lower = chat_user;
             std::transform(chat_user.begin(), chat_user.end(),
                            chat_user_lower.begin(), ::tolower);
+
+            //get username color
+
+            //get if user is subbed
+
+            //get if user is broadcaster
+
+            //get if user is a moderator
 
             // parse out chat message
             std::string chat_start_user =
