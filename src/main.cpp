@@ -6,6 +6,7 @@
 #include <boost/beast/version.hpp>
 
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <iostream>
 #include <sstream>
@@ -13,11 +14,14 @@
 #include <string_view>
 #include <thread>
 
+#include "boost/lexical_cast.hpp"
 #include "boost/utility/string_view_fwd.hpp"
 
 namespace beast = boost::beast;  // from <boost/beast.hpp>
 namespace net = boost::asio;     // from <boost/asio.hpp>
-using tcp = net::ip::tcp;        // from <boost/asio/ip/tcp.hpp>
+using boost::bad_lexical_cast;
+using boost::lexical_cast;
+using tcp = net::ip::tcp;  // from <boost/asio/ip/tcp.hpp>
 using system_clock = std::chrono::system_clock;
 
 constexpr std::string_view host = "irc.chat.twitch.tv";
@@ -117,6 +121,17 @@ process_chat() {
                     (user_color_start + display_name_color.size()));
 
             // get if user is subbed
+            // checking to see if "subscriber=" is true or false
+            std::string subscriber = "subscriber=";
+            std::size_t subscriber_start = message.find(subscriber);
+            assert(subscriber_start != message.npos);
+            std::size_t subscriber_end =
+                message.find(';', subscriber_start + subscriber.size());
+            std::string subbed(
+                message.data() + subscriber_start + subscriber.size(),
+                subscriber_end - (subscriber_start + subscriber.size()));
+            bool issubbed = lexical_cast<bool>(subbed);
+            std::cout << issubbed << "\n";
 
             // get if user is broadcaster
 
