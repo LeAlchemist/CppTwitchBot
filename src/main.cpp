@@ -6,6 +6,7 @@
 #include <boost/beast/version.hpp>
 
 #include <algorithm>
+#include <cstddef>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -103,13 +104,23 @@ process_chat() {
             std::transform(chat_user.begin(), chat_user.end(),
                            chat_user_lower.begin(), ::tolower);
 
-            //get username color
+            // get username color
+            // twitch/irc uses a hex code value here
+            std::string display_name_color = "color=#";
+            std::size_t user_color_start = message.find(display_name_color);
+            assert(user_color_start != message.npos);
+            std::size_t user_color_end =
+                message.find(';', user_color_start + display_name_color.size());
+            std::string user_color(
+                message.data() + user_color_start + display_name_color.size(),
+                user_color_end -
+                    (user_color_start + display_name_color.size()));
 
-            //get if user is subbed
+            // get if user is subbed
 
-            //get if user is broadcaster
+            // get if user is broadcaster
 
-            //get if user is a moderator
+            // get if user is a moderator
 
             // parse out chat message
             std::string chat_start_user =
