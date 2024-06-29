@@ -10,7 +10,6 @@
 #include <sstream>
 #include <string>
 #include <string_view>
-#include <thread>
 
 #include "boost/utility/string_view_fwd.hpp"
 
@@ -46,7 +45,7 @@ println(std::string_view str) {
 
 void
 println(auto&& str)
-    requires(requires { str.str(); })
+    requires requires { str.str(); }
 {
     auto const now = system_clock::now();
     std::time_t const t_c = system_clock::to_time_t(now);
@@ -72,7 +71,6 @@ write_message(boost::string_view message) {
 void
 console_message() {
     std::string console;
-
     getline(std::cin, console);
     write_message(console);
 }
@@ -156,13 +154,11 @@ auto
 main() -> int {
     connect_to_twitch();
 
-    std::jthread input([&] {
-        while (true) {
-            console_message();
-        }
-    });
+    // Set stdin to non-blocking.
+    fcntl(0, F_SETFL, O_NONBLOCK);
 
     while (true) {
+        console_message();
         process_chat();
     }
 }
