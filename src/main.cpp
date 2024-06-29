@@ -89,9 +89,9 @@ process_chat() {
             // TODO: Parse message info here
             // get the username
             std::string display_name = "display-name=";
-            int chat_user_pos = message.find(display_name);
+            std::size_t chat_user_pos = message.find(display_name);
             assert(chat_user_pos != message.npos);
-            int slash_pos =
+            std::size_t slash_pos =
                 message.find(';', chat_user_pos + display_name.size());
             std::string chat_user(
                 message.data() + chat_user_pos + display_name.size(),
@@ -105,7 +105,7 @@ process_chat() {
             // parse out chat message
             std::string chat_start_user =
                 "#" + std::string(twitch_channel) + " :";
-            int chat_start = message.find(chat_start_user);
+            std::size_t chat_start = message.find(chat_start_user);
             std::string chat_msg(
                 message.data() + chat_start + chat_start_user.size(), 512);
 
