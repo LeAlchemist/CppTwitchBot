@@ -120,13 +120,13 @@ process_chat() {
                 message.data() + user_color_start + display_name_color.size(),
                 user_color_end -
                     (user_color_start + display_name_color.size()));
-
+            int hex;
             // if user doesn't have an assigned color
             if (user_color.empty()) {
-                user_color = "ccff00";
+                std::string temp_color = "ccff00";
+                auto _ = std::from_chars(temp_color.data(),
+                                         temp_color.data() + 6, hex, 16);
             }
-
-            int hex;
             auto _ = std::from_chars(user_color.data(), user_color.data() + 6,
                                      hex, 16);
 
@@ -140,6 +140,7 @@ process_chat() {
             std::string subbed(
                 message.data() + subscriber_start + subscriber.size(),
                 subscriber_end - (subscriber_start + subscriber.size()));
+            [[maybe_unused]]
             bool issubbed = lexical_cast<bool>(subbed);
 
             // get if user is broadcaster
@@ -154,6 +155,7 @@ process_chat() {
             std::string broadcaster(
                 message.data() + broadcaster_start + badges.size(),
                 broadcaster_end - (broadcaster_start + badges.size()));
+            [[maybe_unused]]
             bool isbroadcaster =
                 lexical_cast<bool>(broadcaster.contains("broadcaster"));
 
@@ -167,6 +169,7 @@ process_chat() {
             std::string mod(
                 message.data() + moderator_start + moderator.size(),
                 moderator_end - (moderator_start + moderator.size()));
+            [[maybe_unused]]
             bool ismod = lexical_cast<bool>(subbed);
 
             // parse out chat message
@@ -180,7 +183,6 @@ process_chat() {
             std::string user_colored = fmt::format(
                 "{}", fmt::styled(chat_user, fmt::fg(fmt::rgb(hex))));
             println(user_colored + ": " + chat_msg);
-            println(message_receive);
         } else {
             println(message_receive);
         }
