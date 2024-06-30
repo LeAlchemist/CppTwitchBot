@@ -144,20 +144,20 @@ process_chat() {
             bool issubbed = lexical_cast<bool>(subbed);
 
             // get if user is broadcaster
-            // this checks to see if "badges=" contains a term for "broadcaster"
             // this could also be modified for other terms such as "subscriber",
             // "premium"... found here https://dev.twitch.tv/docs/irc/tags/
             std::string badges = "badges=";
-            std::size_t broadcaster_start = message.find(badges);
-            assert(broadcaster_start != message.npos);
-            std::size_t broadcaster_end =
-                message.find(';', broadcaster_start + badges.size());
-            std::string broadcaster(
-                message.data() + broadcaster_start + badges.size(),
-                broadcaster_end - (broadcaster_start + badges.size()));
+            std::size_t badges_start = message.find(badges);
+            assert(badges_start != message.npos);
+            std::size_t badges_end =
+                message.find(';', badges_start + badges.size());
+            std::string badges_type(
+                message.data() + badges_start + badges.size(),
+                badges_end - (badges_start + badges.size()));
+            // this checks to see if "badges=" contains a term for "broadcaster"
             [[maybe_unused]]
             bool isbroadcaster =
-                lexical_cast<bool>(broadcaster.contains("broadcaster"));
+                lexical_cast<bool>(badges_type.contains("broadcaster"));
 
             // get if user is a moderator
             // checking to see if "mod=" is true or false
