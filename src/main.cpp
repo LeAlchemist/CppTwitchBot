@@ -18,6 +18,7 @@
 
 #include "boost/lexical_cast.hpp"
 #include "boost/utility/string_view_fwd.hpp"
+#include "println.hpp"
 
 namespace beast = boost::beast;  // from <boost/beast.hpp>
 namespace net = boost::asio;     // from <boost/asio.hpp>
@@ -32,8 +33,6 @@ constexpr std::string_view oauth = "oauth:" OAUTH;
 constexpr std::string_view bot_username = BOTNAME;
 constexpr std::string_view twitch_channel = CHANNEL;
 
-#define fwd(x) ::std::forward<decltype(x)>(x)
-
 inline std::stringstream message_sent;
 inline constinit boost::static_string<2'048> message_receive(2'048, '\0');
 
@@ -42,24 +41,6 @@ inline net::io_context ioc;
 // These objects perform our I/O
 inline tcp::resolver resolver(ioc);
 inline beast::tcp_stream stream(ioc);
-
-void
-println(std::string_view str) {
-    auto const now = system_clock::now();
-    std::time_t const t_c = system_clock::to_time_t(now);
-
-    fmt::print("{}{}\n", std::ctime(&t_c), str);
-}
-
-void
-println(auto&& str)
-    requires(requires { str.str(); })
-{
-    auto const now = system_clock::now();
-    std::time_t const t_c = system_clock::to_time_t(now);
-
-    fmt::print("{}{}\n", std::ctime(&t_c), fwd(str).str());
-}
 
 void
 append_message(std::stringstream& message_sent, auto&&... arguments) {
