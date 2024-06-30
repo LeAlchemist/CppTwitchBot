@@ -7,7 +7,9 @@
 
 #include <algorithm>
 #include <cassert>
+#include <charconv>
 #include <cstddef>
+#include <fmt/color.h>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -45,8 +47,8 @@ void
 println(std::string_view str) {
     auto const now = system_clock::now();
     std::time_t const t_c = system_clock::to_time_t(now);
-    // TODO: Replace this with fmt or something.
-    std::cout << std::ctime(&t_c) << str << '\n';
+
+    fmt::print("{}{}\n", std::ctime(&t_c), str);
 }
 
 void
@@ -56,7 +58,7 @@ println(auto&& str)
     auto const now = system_clock::now();
     std::time_t const t_c = system_clock::to_time_t(now);
 
-    std::cout << std::ctime(&t_c) << fwd(str).str() << '\n';
+    fmt::print("{}{}\n", std::ctime(&t_c), fwd(str).str());
 }
 
 void
@@ -92,7 +94,6 @@ process_chat() {
 
     if (message.contains("tmi.twitch.tv")) {
         if (message.contains("tmi.twitch.tv PRIVMSG")) {
-            // TODO: Parse message info here
             // get the username
             std::string display_name = "display-name=";
             std::size_t chat_user_start = message.find(display_name);
@@ -119,6 +120,15 @@ process_chat() {
                 message.data() + user_color_start + display_name_color.size(),
                 user_color_end -
                     (user_color_start + display_name_color.size()));
+
+            // if user doesn't have an assigned color
+            if (user_color.empty()) {
+                user_color = "ccff00";
+            }
+
+            int hex;
+            auto _ = std::from_chars(user_color.data(), user_color.data() + 6,
+                                     hex, 16);
 
             // get if user is subbed
             // checking to see if "subscriber=" is true or false
@@ -167,7 +177,10 @@ process_chat() {
                 message.data() + chat_start + chat_start_user.size(), 512);
 
             // plain text message
-            println(chat_user + ": " + chat_msg);
+            std::string user_colored = fmt::format(
+                "{}", fmt::styled(chat_user, fmt::fg(fmt::rgb(hex))));
+            println(user_colored + ": " + chat_msg);
+            println(message_receive);
         } else {
             println(message_receive);
         }

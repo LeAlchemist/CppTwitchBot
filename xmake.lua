@@ -1,5 +1,6 @@
 add_rules("mode.debug", "mode.release")
 add_requires("boost")
+add_requires("fmt")
 set_languages("gnuxxlatest")
 
 -- TODO: Enforce these being set.
@@ -18,6 +19,7 @@ target("exe")
     set_kind("binary")
     set_warnings("all", "extra")
     add_packages("boost")
+    add_packages("fmt")
     add_options("oauth")
     add_options("twitch_channel")
     add_options("bot_username")
