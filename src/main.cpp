@@ -13,33 +13,18 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <string_view>
 #include <thread>
 
 #include "append_message.hpp"
 #include "boost/lexical_cast.hpp"
 #include "boost/utility/string_view_fwd.hpp"
 #include "println.hpp"
+#include "connect_to_twitch.hpp"
 
-namespace beast = boost::beast;  // from <boost/beast.hpp>
-namespace net = boost::asio;     // from <boost/asio.hpp>
 using boost::bad_lexical_cast;
 using boost::lexical_cast;
-using tcp = net::ip::tcp;  // from <boost/asio/ip/tcp.hpp>
-
-constexpr std::string_view host = "irc.chat.twitch.tv";
-constexpr std::string_view port = "6667";
-constexpr std::string_view oauth = "oauth:" OAUTH;
-constexpr std::string_view bot_username = BOTNAME;
-constexpr std::string_view twitch_channel = CHANNEL;
 
 inline constinit boost::static_string<2'048> message_receive(2'048, '\0');
-
-// The io_context is required for all I/O
-inline net::io_context ioc;
-// These objects perform our I/O
-inline tcp::resolver resolver(ioc);
-inline beast::tcp_stream stream(ioc);
 
 // This is to write a PRIVMSG to the chat
 void
@@ -174,27 +159,6 @@ process_chat() {
         // this clears the read buffer and resets size
         std::memset(message_receive.data(), '\0', message_receive.size());
     }
-}
-
-void
-connect_to_twitch() {
-    // Look up the domain name
-    auto const results = resolver.resolve(host, port);
-
-    // Make the connection on the IP address we get from a lookup
-    auto _ = stream.connect(results);
-
-    append_message(message_sent, "PASS ", oauth);
-    append_message(message_sent, "NICK ", bot_username);
-    append_message(message_sent, "USER ", bot_username, "8 * :", bot_username);
-    append_message(message_sent, "JOIN #", twitch_channel);
-    append_message(message_sent, "CAP REQ :twitch.tv/tags");
-    append_message(message_sent, "CAP REQ :twitch.tv/commands");
-    append_message(message_sent, "CAP REQ :twitch.tv/membership");
-
-    stream.write_some(boost::asio::buffer(message_sent.str()));
-    println(message_sent);
-    message_sent.str("");  // Empty the string buffer.
 }
 
 auto
