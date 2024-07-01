@@ -1,13 +1,3 @@
-#include <boost/algorithm/string/case_conv.hpp>
-#include <boost/asio/connect.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
-
-#include <cassert>
-#include <fmt/color.h>
-
 #include <thread>
 
 #include "connect_to_twitch.hpp"
