@@ -1,14 +1,5 @@
 #include "process_chat.hpp"
 
-#include <boost/algorithm/string/case_conv.hpp>
-#include <boost/asio/connect.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
-
-#include <algorithm>
-#include <cassert>
 #include <charconv>
 #include <cstddef>
 #include <fmt/color.h>
@@ -24,6 +15,9 @@
 
 using boost::bad_lexical_cast;
 using boost::lexical_cast;
+
+// `boost::static_string` does not have a `.contains()` member.
+boost::string_view const message(message_receive);
 
 // This is to write a PRIVMSG to the chat
 void
@@ -42,94 +36,110 @@ console_message() {
     write_message(console);
 }
 
+struct twitch_username {
+    std::string chat_user;
+    int hex_value;
+};
+
+auto
+twitch_username() -> twitch_username {
+    // get the username
+    std::string display_name = "display-name=";
+    std::size_t chat_user_start = message.find(display_name);
+    assert(chat_user_start != message.npos);
+    std::size_t chat_user_end =
+        message.find(';', chat_user_start + display_name.size());
+    std::string chat_user(
+        message.data() + chat_user_start + display_name.size(),
+        chat_user_end - (chat_user_start + display_name.size()));
+
+    // make user name lower case
+    std::string chat_user_lower = chat_user;
+    std::transform(chat_user.begin(), chat_user.end(), chat_user_lower.begin(),
+                   ::tolower);
+
+    // get username color
+    // twitch/irc uses a hex code value here
+    std::string display_name_color = "color=#";
+    std::size_t user_color_start = message.find(display_name_color);
+    assert(user_color_start != message.npos);
+    std::size_t user_color_end =
+        message.find(';', user_color_start + display_name_color.size());
+    std::string user_color(
+        message.data() + user_color_start + display_name_color.size(),
+        user_color_end - (user_color_start + display_name_color.size()));
+    int hex_value;
+    // if user doesn't have an assigned color
+    if (user_color.empty()) {
+        std::string temp_color = "ccff00";
+        auto _ = std::from_chars(temp_color.data(), temp_color.data() + 6,
+                                 hex_value, 16);
+    }
+    auto _ = std::from_chars(user_color.data(), user_color.data() + 6,
+                             hex_value, 16);
+
+    return {chat_user, hex_value};
+}
+
+void
+twitch_subscriber() {
+    // get if user is subbed
+    // checking to see if "subscriber=" is true or false
+    std::string subscriber = "subscriber=";
+    std::size_t subscriber_start = message.find(subscriber);
+    assert(subscriber_start != message.npos);
+    std::size_t subscriber_end =
+        message.find(';', subscriber_start + subscriber.size());
+    std::string subbed(message.data() + subscriber_start + subscriber.size(),
+                       subscriber_end - (subscriber_start + subscriber.size()));
+    [[maybe_unused]]
+    bool issubbed = lexical_cast<bool>(subbed);
+}
+
+void
+twitch_badges() {
+    // get if user is broadcaster
+    // this could also be modified for other terms such as "subscriber",
+    // "premium"... found here https://dev.twitch.tv/docs/irc/tags/
+    std::string badges = "badges=";
+    std::size_t badges_start = message.find(badges);
+    assert(badges_start != message.npos);
+    std::size_t badges_end = message.find(';', badges_start + badges.size());
+    std::string badges_type(message.data() + badges_start + badges.size(),
+                            badges_end - (badges_start + badges.size()));
+    // this checks to see if "badges=" contains a term for "broadcaster"
+    [[maybe_unused]]
+    bool isbroadcaster =
+        lexical_cast<bool>(badges_type.contains("broadcaster"));
+    [[maybe_unused]]
+    bool ispremium =
+        lexical_cast<bool>(badges_type.contains("premium"));
+}
+
+void
+twitch_moderator() {
+    // get if user is a moderator
+    // checking to see if "mod=" is true or false
+    std::string moderator = "mod=";
+    std::size_t moderator_start = message.find(moderator);
+    assert(moderator_start != message.npos);
+    std::size_t moderator_end =
+        message.find(';', moderator_start + moderator.size());
+    std::string mod(message.data() + moderator_start + moderator.size(),
+                    moderator_end - (moderator_start + moderator.size()));
+    [[maybe_unused]]
+    bool ismod = lexical_cast<bool>(mod);
+}
+
 // this reads the chat and send a few responses based on basic text parsing
 void
 process_chat() {
     auto payload_wrapper = boost::asio::buffer(message_receive);
     stream.read_some(payload_wrapper);
 
-    // `boost::static_string` does not have a `.contains()` member.
-    boost::string_view const message(message_receive);
-
     if (message.contains("tmi.twitch.tv")) {
         if (message.contains("tmi.twitch.tv PRIVMSG")) {
-            // get the username
-            std::string display_name = "display-name=";
-            std::size_t chat_user_start = message.find(display_name);
-            assert(chat_user_start != message.npos);
-            std::size_t chat_user_end =
-                message.find(';', chat_user_start + display_name.size());
-            std::string chat_user(
-                message.data() + chat_user_start + display_name.size(),
-                chat_user_end - (chat_user_start + display_name.size()));
-
-            // make user name lower case
-            std::string chat_user_lower = chat_user;
-            std::transform(chat_user.begin(), chat_user.end(),
-                           chat_user_lower.begin(), ::tolower);
-
-            // get username color
-            // twitch/irc uses a hex code value here
-            std::string display_name_color = "color=#";
-            std::size_t user_color_start = message.find(display_name_color);
-            assert(user_color_start != message.npos);
-            std::size_t user_color_end =
-                message.find(';', user_color_start + display_name_color.size());
-            std::string user_color(
-                message.data() + user_color_start + display_name_color.size(),
-                user_color_end -
-                    (user_color_start + display_name_color.size()));
-            int hex;
-            // if user doesn't have an assigned color
-            if (user_color.empty()) {
-                std::string temp_color = "ccff00";
-                auto _ = std::from_chars(temp_color.data(),
-                                         temp_color.data() + 6, hex, 16);
-            }
-            auto _ = std::from_chars(user_color.data(), user_color.data() + 6,
-                                     hex, 16);
-
-            // get if user is subbed
-            // checking to see if "subscriber=" is true or false
-            std::string subscriber = "subscriber=";
-            std::size_t subscriber_start = message.find(subscriber);
-            assert(subscriber_start != message.npos);
-            std::size_t subscriber_end =
-                message.find(';', subscriber_start + subscriber.size());
-            std::string subbed(
-                message.data() + subscriber_start + subscriber.size(),
-                subscriber_end - (subscriber_start + subscriber.size()));
-            [[maybe_unused]]
-            bool issubbed = lexical_cast<bool>(subbed);
-
-            // get if user is broadcaster
-            // this could also be modified for other terms such as "subscriber",
-            // "premium"... found here https://dev.twitch.tv/docs/irc/tags/
-            std::string badges = "badges=";
-            std::size_t badges_start = message.find(badges);
-            assert(badges_start != message.npos);
-            std::size_t badges_end =
-                message.find(';', badges_start + badges.size());
-            std::string badges_type(
-                message.data() + badges_start + badges.size(),
-                badges_end - (badges_start + badges.size()));
-            // this checks to see if "badges=" contains a term for "broadcaster"
-            [[maybe_unused]]
-            bool isbroadcaster =
-                lexical_cast<bool>(badges_type.contains("broadcaster"));
-
-            // get if user is a moderator
-            // checking to see if "mod=" is true or false
-            std::string moderator = "mod=";
-            std::size_t moderator_start = message.find(moderator);
-            assert(moderator_start != message.npos);
-            std::size_t moderator_end =
-                message.find(';', moderator_start + moderator.size());
-            std::string mod(
-                message.data() + moderator_start + moderator.size(),
-                moderator_end - (moderator_start + moderator.size()));
-            [[maybe_unused]]
-            bool ismod = lexical_cast<bool>(subbed);
+            auto [username, hex] = twitch_username();
 
             // parse out chat message
             std::string chat_start_user =
@@ -140,8 +150,11 @@ process_chat() {
 
             // plain text message
             std::string user_colored = fmt::format(
-                "{}", fmt::styled(chat_user, fmt::fg(fmt::rgb(hex))));
+                "{}", fmt::styled(username, fmt::fg(fmt::rgb(hex))));
+
+            println(message_receive);
             println(user_colored + ": " + chat_msg);
+
         } else {
             println(message_receive);
         }
