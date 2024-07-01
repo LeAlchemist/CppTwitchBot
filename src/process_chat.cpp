@@ -1,5 +1,6 @@
 #include "process_chat.hpp"
 
+#include <cassert>
 #include <charconv>
 #include <cstddef>
 #include <fmt/color.h>
@@ -11,6 +12,7 @@
 #include "boost/lexical_cast.hpp"
 #include "boost/utility/string_view_fwd.hpp"
 #include "connect_to_twitch.hpp"
+#include "fmt/core.h"
 #include "println.hpp"
 
 using boost::bad_lexical_cast;
@@ -82,21 +84,6 @@ twitch_username() -> twitch_username {
 }
 
 void
-twitch_subscriber() {
-    // get if user is subbed
-    // checking to see if "subscriber=" is true or false
-    std::string subscriber = "subscriber=";
-    std::size_t subscriber_start = message.find(subscriber);
-    assert(subscriber_start != message.npos);
-    std::size_t subscriber_end =
-        message.find(';', subscriber_start + subscriber.size());
-    std::string subbed(message.data() + subscriber_start + subscriber.size(),
-                       subscriber_end - (subscriber_start + subscriber.size()));
-    [[maybe_unused]]
-    bool issubbed = lexical_cast<bool>(subbed);
-}
-
-void
 twitch_badges() {
     // get if user is broadcaster
     // this could also be modified for other terms such as "subscriber",
@@ -107,28 +94,40 @@ twitch_badges() {
     std::size_t badges_end = message.find(';', badges_start + badges.size());
     std::string badges_type(message.data() + badges_start + badges.size(),
                             badges_end - (badges_start + badges.size()));
-    // this checks to see if "badges=" contains a term for "broadcaster"
-    [[maybe_unused]]
-    bool isbroadcaster =
-        lexical_cast<bool>(badges_type.contains("broadcaster"));
-    [[maybe_unused]]
-    bool ispremium =
-        lexical_cast<bool>(badges_type.contains("premium"));
-}
 
-void
-twitch_moderator() {
-    // get if user is a moderator
-    // checking to see if "mod=" is true or false
-    std::string moderator = "mod=";
-    std::size_t moderator_start = message.find(moderator);
-    assert(moderator_start != message.npos);
-    std::size_t moderator_end =
-        message.find(';', moderator_start + moderator.size());
-    std::string mod(message.data() + moderator_start + moderator.size(),
-                    moderator_end - (moderator_start + moderator.size()));
-    [[maybe_unused]]
-    bool ismod = lexical_cast<bool>(mod);
+    auto lambda = [&](std::string const& name, std::string const& name_slash) {
+        std::size_t start = message.find(name, badges_start + badges.size());
+        assert(start != message.npos);
+        std::size_t end;
+        if (badges_end == (start + name_slash.size()) + 1) {
+            end = badges_end;
+        } else {
+            end = message.find(',', start + name_slash.size());
+            assert(end != message.npos);
+        }
+        return std::string(message.data() + start + name_slash.size(),
+                           end - (start + name_slash.size()));
+    };
+
+#define BADGES(name)                                                  \
+    [[maybe_unused]]                                                  \
+    bool is_##name = lexical_cast<bool>(badges_type.contains(#name)); \
+    std::optional<std::string> name##_tier = std::nullopt;            \
+    if (is_##name) {                                                  \
+        name##_tier = lambda(#name, #name "/");                       \
+        fmt::println("{} {}", #name, *(name##_tier));                 \
+    }
+
+    BADGES(admin);
+    BADGES(bits);
+    BADGES(broadcaster);
+    BADGES(moderator);
+    BADGES(subscriber);
+    BADGES(staff);
+    BADGES(turbo);
+    BADGES(premium);
+
+#undef BADGES
 }
 
 // this reads the chat and send a few responses based on basic text parsing
@@ -152,6 +151,7 @@ process_chat() {
             std::string user_colored = fmt::format(
                 "{}", fmt::styled(username, fmt::fg(fmt::rgb(hex))));
 
+            twitch_badges();
             println(message_receive);
             println(user_colored + ": " + chat_msg);
 
