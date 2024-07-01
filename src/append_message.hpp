@@ -1,6 +1,8 @@
 #pragma once
 #include <sstream>
 
+#include "macros.hpp"
+
 inline std::stringstream message_sent;
 
 void

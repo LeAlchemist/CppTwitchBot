@@ -32,4 +32,4 @@ target("exe")
         add_cxxflags("-fmerge-constants", {tools = "clang"})
     end
 
-    add_files("src/main.cpp")
+    add_files("src/*.cpp")
