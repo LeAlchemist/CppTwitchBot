@@ -115,7 +115,6 @@ message_badges() {
     std::optional<std::string> name##_tier = std::nullopt;            \
     if (is_##name) {                                                  \
         name##_tier = lambda(#name, #name "/");                       \
-        fmt::println("{} {}", #name, *(name##_tier));                 \
     }
 
     BADGES(admin);
@@ -131,7 +130,27 @@ message_badges() {
 }
 
 void
-keep_alive() {
+message_privmsg() {
+    if (message.contains("tmi.twitch.tv PRIVMSG")) {
+        auto [username, hex] = message_username();
+
+        // parse out chat message
+        std::string chat_start_user = "#" + std::string(twitch_channel) + " :";
+        std::size_t chat_start = message.find(chat_start_user);
+        std::string chat_msg(
+            message.data() + chat_start + chat_start_user.size(), 512);
+
+        // plain text message
+        std::string user_colored =
+            fmt::format("{}", fmt::styled(username, fmt::fg(fmt::rgb(hex))));
+
+        message_badges();
+        println(user_colored + ": " + chat_msg);
+    }
+}
+
+void
+message_keep_alive() {
     // this is to respond to the "keep alive" check
     if (message.contains("PING :tmi.twitch.tv")) {
         append_message(message_sent, "PONG :tmi.twitch.tv");
@@ -149,31 +168,12 @@ process_chat() {
     stream.read_some(payload_wrapper);
 
     if (message.contains("tmi.twitch.tv")) {
-        keep_alive();
+        message_keep_alive();
+        message_privmsg();
 
-        if (message.contains("tmi.twitch.tv PRIVMSG")) {
-            auto [username, hex] = message_username();
-
-            // parse out chat message
-            std::string chat_start_user =
-                "#" + std::string(twitch_channel) + " :";
-            std::size_t chat_start = message.find(chat_start_user);
-            std::string chat_msg(
-                message.data() + chat_start + chat_start_user.size(), 512);
-
-            // plain text message
-            std::string user_colored = fmt::format(
-                "{}", fmt::styled(username, fmt::fg(fmt::rgb(hex))));
-
-            message_badges();
-            println(message_receive);
-            println(user_colored + ": " + chat_msg);
-
-        } else {
-            println(message_receive);
-        }
-
-        // this clears the read buffer and resets size
-        std::memset(message_receive.data(), '\0', message_receive.size());
+        println(message_receive);
     }
+
+    // this clears the read buffer and resets size
+    std::memset(message_receive.data(), '\0', message_receive.size());
 }
