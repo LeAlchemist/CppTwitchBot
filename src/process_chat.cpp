@@ -38,13 +38,13 @@ console_message() {
     write_message(console);
 }
 
-struct twitch_username {
+struct message_username {
     std::string chat_user;
     int hex_value;
 };
 
 auto
-twitch_username() -> twitch_username {
+message_username() -> message_username {
     // get the username
     std::string display_name = "display-name=";
     std::size_t chat_user_start = message.find(display_name);
@@ -84,7 +84,7 @@ twitch_username() -> twitch_username {
 }
 
 void
-twitch_badges() {
+message_badges() {
     // get if user is broadcaster
     // this could also be modified for other terms such as "subscriber",
     // "premium"... found here https://dev.twitch.tv/docs/irc/tags/
@@ -130,6 +130,18 @@ twitch_badges() {
 #undef BADGES
 }
 
+void
+keep_alive() {
+    // this is to respond to the "keep alive" check
+    if (message.contains("PING :tmi.twitch.tv")) {
+        append_message(message_sent, "PONG :tmi.twitch.tv");
+
+        stream.write_some(boost::asio::buffer(message_sent.str()));
+        println(message_sent);
+        message_sent.str("");  // Empty the string buffer
+    }
+}
+
 // this reads the chat and send a few responses based on basic text parsing
 void
 process_chat() {
@@ -137,8 +149,10 @@ process_chat() {
     stream.read_some(payload_wrapper);
 
     if (message.contains("tmi.twitch.tv")) {
+        keep_alive();
+
         if (message.contains("tmi.twitch.tv PRIVMSG")) {
-            auto [username, hex] = twitch_username();
+            auto [username, hex] = message_username();
 
             // parse out chat message
             std::string chat_start_user =
@@ -151,21 +165,12 @@ process_chat() {
             std::string user_colored = fmt::format(
                 "{}", fmt::styled(username, fmt::fg(fmt::rgb(hex))));
 
-            twitch_badges();
+            message_badges();
             println(message_receive);
             println(user_colored + ": " + chat_msg);
 
         } else {
             println(message_receive);
-        }
-
-        // this is to respond to the "keep alive" check
-        if (message.contains("PING :tmi.twitch.tv")) {
-            append_message(message_sent, "PONG :tmi.twitch.tv");
-
-            stream.write_some(boost::asio::buffer(message_sent.str()));
-            println(message_sent);
-            message_sent.str("");  // Empty the string buffer
         }
 
         // this clears the read buffer and resets size
