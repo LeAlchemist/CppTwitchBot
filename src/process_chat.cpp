@@ -144,9 +144,7 @@ message_privmsg() {
         std::string user_colored =
             fmt::format("{}", fmt::styled(username, fmt::fg(fmt::rgb(hex))));
 
-#ifdef BADGES_FEATURE
         message_badges();
-#endif
 
         message_receive.replace(0, 2'048, user_colored + ": " + chat_msg);
     }

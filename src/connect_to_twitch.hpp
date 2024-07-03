@@ -18,6 +18,8 @@ inline beast::tcp_stream stream(ioc);
 
 inline constexpr std::string_view host = "irc.chat.twitch.tv";
 inline constexpr std::string_view port = "6667";
+
+// WARNING! Be sure that the `OAUTH` macro is not visible to onlookers.
 inline constexpr std::string_view oauth = "oauth:" OAUTH;
 inline constexpr std::string_view bot_username = BOTNAME;
 inline constexpr std::string_view twitch_channel = CHANNEL;
