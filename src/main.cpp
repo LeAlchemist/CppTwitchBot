@@ -3,8 +3,6 @@
 #include "connect_to_twitch.hpp"
 #include "process_chat.hpp"
 
-
-
 auto
 main() -> int {
     connect_to_twitch();
