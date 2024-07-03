@@ -1,3 +1,8 @@
 #+TITLE: Twitch bot
 
 [[./resources/demo.png]]
+
+* Building
+The LLVM toolchain is recommended for this application.
+Configure the project with =xmake f --toolchain=clang --runtimes=c++_shared=,
+then compile with =xmake b=.
