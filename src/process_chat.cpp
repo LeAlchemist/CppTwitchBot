@@ -145,7 +145,46 @@ message_privmsg() {
             fmt::format("{}", fmt::styled(username, fmt::fg(fmt::rgb(hex))));
 
         message_badges();
-        println(user_colored + ": " + chat_msg);
+        // println(user_colored + ": " + chat_msg);
+
+        message_receive.replace(0, 2'048, user_colored + ": " + chat_msg);
+    }
+}
+
+void
+message_welcome() {
+    if (message.contains("JOIN")) {
+        std::size_t welcome_user_start = message.find(':');
+        std::size_t welcome_user_end = message.find('!', welcome_user_start);
+
+        std::string welcome_user(message.data() + welcome_user_start + 1,
+                                 welcome_user_end - (welcome_user_start + 1));
+
+        std::size_t welcome_channel_start =
+            message.find("#" + std::string(twitch_channel));
+        std::size_t welcome_channel_end =
+            ("#" + std::string(twitch_channel)).size();
+
+        message_receive.replace(
+            welcome_user_start,
+            welcome_channel_start + welcome_channel_end - welcome_user_start,
+            welcome_user + " JOINED");
+    } else if (message.contains("PART")) {
+        std::size_t welcome_user_start = message.find(':');
+        std::size_t welcome_user_end = message.find('!', welcome_user_start);
+
+        std::string welcome_user(message.data() + welcome_user_start + 1,
+                                 welcome_user_end - (welcome_user_start + 1));
+
+        std::size_t welcome_channel_start =
+            message.find("#" + std::string(twitch_channel));
+        std::size_t welcome_channel_end =
+            ("#" + std::string(twitch_channel)).size();
+
+        message_receive.replace(
+            welcome_user_start,
+            welcome_channel_start + welcome_channel_end - welcome_user_start,
+            welcome_user + " LEFT");
     }
 }
 
@@ -168,10 +207,12 @@ process_chat() {
     stream.read_some(payload_wrapper);
 
     if (message.contains("tmi.twitch.tv")) {
-        message_keep_alive();
+        // this is formatted for graphical display
         message_privmsg();
-
+        // these will be terminal only
+        message_welcome();
         println(message_receive);
+        message_keep_alive();
     }
 
     // this clears the read buffer and resets size
