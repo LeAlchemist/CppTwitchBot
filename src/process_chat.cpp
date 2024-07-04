@@ -123,6 +123,8 @@ message_badges() {
     BADGES(broadcaster);
     BADGES(moderator);
     BADGES(subscriber);
+    if (is_subscriber) {
+    }
     BADGES(staff);
     BADGES(turbo);
     BADGES(premium);
@@ -149,7 +151,7 @@ message_privmsg() {
         message_badges();
         // #endif
 
-        message_receive.replace(0, 2'048, user_colored + ": " + chat_msg);
+        println(user_colored + ": " + chat_msg);
     }
 }
 
@@ -209,13 +211,14 @@ process_chat() {
     stream.read_some(payload_wrapper);
 
     if (message.contains("tmi.twitch.tv")) {
-        println(message_receive);
-        // this is formatted for graphical display
-        message_privmsg();
-        // these will be terminal only
-        message_welcome();
-        println(message_receive);
-        message_keep_alive();
+        if (message.contains("PRIVMSG")) {
+            message_privmsg();
+        } else {
+            // these will be terminal only
+            message_welcome();
+            println(message_receive);
+            message_keep_alive();
+        }
     }
 
     // this clears the read buffer and resets size
