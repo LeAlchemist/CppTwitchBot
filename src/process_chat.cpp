@@ -96,16 +96,17 @@ message_badges() {
                             badges_end - (badges_start + badges.size()));
 
     auto lambda = [&](std::string const& name, std::string const& name_slash) {
-        std::size_t start = message.find(name, badges_start + badges.size());
-        assert(start != message.npos);
-        std::size_t end;
-        if (badges_end == (start + name_slash.size()) + 1) {
-            end = badges_end;
-        } else {
-            end = message.find(',', start + name_slash.size());
-            assert(end != message.npos);
+        std::size_t start = badges_type.find(name + "/");
+        assert(start != badges_type.npos);
+
+        std::size_t end = badges_type.find(',', start + name_slash.size());
+        assert(end != badges_type.npos);
+
+        if (end > badges_type.size()) {
+            end = badges_type.size();
         }
-        return std::string(message.data() + start + name_slash.size(),
+
+        return std::string(badges_type.data() + start + name_slash.size(),
                            end - (start + name_slash.size()));
     };
 
@@ -144,9 +145,9 @@ message_privmsg() {
         std::string user_colored =
             fmt::format("{}", fmt::styled(username, fmt::fg(fmt::rgb(hex))));
 
-#ifdef BADGES_FEATURE
+        // #ifdef BADGES_FEATURE
         message_badges();
-#endif
+        // #endif
 
         message_receive.replace(0, 2'048, user_colored + ": " + chat_msg);
     }
@@ -208,6 +209,7 @@ process_chat() {
     stream.read_some(payload_wrapper);
 
     if (message.contains("tmi.twitch.tv")) {
+        println(message_receive);
         // this is formatted for graphical display
         message_privmsg();
         // these will be terminal only
