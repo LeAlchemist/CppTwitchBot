@@ -102,9 +102,7 @@ message_badges() {
         std::size_t end = badges_type.find(',', start + name.size());
         assert(end != badges_type.npos);
 
-        if (end > badges_type.size()) {
-            end = badges_type.size();
-        }
+        end = std::min(end, badges_type.size());
 
         return {badges_type.data() + start + name.size(),
                 end - (start + name.size())};
@@ -124,6 +122,17 @@ message_badges() {
     DECL_BADGE(moderator);
     DECL_BADGE(subscriber);
     if (is_subscriber) {
+        std::string badge_info = "@badge-info=";
+        std::string subscriber_info = "subscriber/";
+        std::size_t badge_subscriber_start =
+            message.find(subscriber_info, badge_info.size());
+        assert(badge_subscriber_start != message.npos);
+        std::size_t badge_subscriber_end =
+            message.find(';', badge_subscriber_start + subscriber_info.size());
+        std::string subscriber_lifetime(
+            message.data() + badge_subscriber_start + subscriber_info.size(),
+            badge_subscriber_end -
+                (badge_subscriber_start + subscriber_info.size()));
     }
     DECL_BADGE(staff);
     DECL_BADGE(turbo);
