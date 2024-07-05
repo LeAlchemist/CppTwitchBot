@@ -95,41 +95,41 @@ message_badges() {
     std::string badges_type(message.data() + badges_start + badges.size(),
                             badges_end - (badges_start + badges.size()));
 
-    auto lambda = [&](std::string const& name, std::string const& name_slash) {
-        std::size_t start = badges_type.find(name + "/");
+    auto lambda = [&](std::string const& name) -> std::string {
+        std::size_t start = badges_type.find(name);
         assert(start != badges_type.npos);
 
-        std::size_t end = badges_type.find(',', start + name_slash.size());
+        std::size_t end = badges_type.find(',', start + name.size());
         assert(end != badges_type.npos);
 
         if (end > badges_type.size()) {
             end = badges_type.size();
         }
 
-        return std::string(badges_type.data() + start + name_slash.size(),
-                           end - (start + name_slash.size()));
+        return {badges_type.data() + start + name.size(),
+                end - (start + name.size())};
     };
 
-#define BADGES(name)                                                  \
+#define DECL_BADGE(name)                                              \
     [[maybe_unused]]                                                  \
     bool is_##name = lexical_cast<bool>(badges_type.contains(#name)); \
     std::optional<std::string> name##_tier = std::nullopt;            \
     if (is_##name) {                                                  \
-        name##_tier = lambda(#name, #name "/");                       \
+        name##_tier = lambda(#name "/");                              \
     }
 
-    BADGES(admin);
-    BADGES(bits);
-    BADGES(broadcaster);
-    BADGES(moderator);
-    BADGES(subscriber);
+    DECL_BADGE(admin);
+    DECL_BADGE(bits);
+    DECL_BADGE(broadcaster);
+    DECL_BADGE(moderator);
+    DECL_BADGE(subscriber);
     if (is_subscriber) {
     }
-    BADGES(staff);
-    BADGES(turbo);
-    BADGES(premium);
+    DECL_BADGE(staff);
+    DECL_BADGE(turbo);
+    DECL_BADGE(premium);
 
-#undef BADGES
+#undef DECL_BADGE
 }
 
 void
@@ -147,7 +147,7 @@ message_privmsg() {
         std::string user_colored =
             fmt::format("{}", fmt::styled(username, fmt::fg(fmt::rgb(hex))));
 
-        // #ifdef BADGES_FEATURE
+        // #ifdef DECL_BADGE_FEATURE
         message_badges();
         // #endif
 
