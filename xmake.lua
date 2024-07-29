@@ -21,6 +21,11 @@ set_showmenu(true)
 set_default(true)
 add_defines("DECL_BADGE_FEATURE")
 
+option("DONT_SHOW_OAUTH")
+set_showmenu(true)
+set_default(true)
+add_defines("DONT_SHOW_OAUTH")
+
 -- Build the Twitch bot.
 target("exe")
 
@@ -33,6 +38,7 @@ add_options("oauth")
 add_options("twitch_channel")
 add_options("bot_username")
 add_options("DECL_BADGE_FEATURE")
+add_options("DONT_SHOW_OAUTH")
 
 add_defines('OAUTH="' .. tostring(get_config("oauth")) .. '"')
 add_defines('CHANNEL="' .. tostring(get_config("twitch_channel")) .. '"')
