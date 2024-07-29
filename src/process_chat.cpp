@@ -156,9 +156,9 @@ message_privmsg() {
         std::string user_colored =
             fmt::format("{}", fmt::styled(username, fmt::fg(fmt::rgb(hex))));
 
-        // #ifdef DECL_BADGE_FEATURE
+#ifdef DECL_BADGE_FEATURE
         message_badges();
-        // #endif
+#endif
 
         println(user_colored + ": " + chat_msg);
     }
@@ -166,6 +166,8 @@ message_privmsg() {
 
 void
 message_welcome() {
+    constexpr char const twitch_channel_pound[] = "#" CHANNEL;
+
     if (message.contains("JOIN")) {
         std::size_t welcome_user_start = message.find(':');
         std::size_t welcome_user_end = message.find('!', welcome_user_start);
@@ -173,26 +175,24 @@ message_welcome() {
         std::string welcome_user(message.data() + welcome_user_start + 1,
                                  welcome_user_end - (welcome_user_start + 1));
 
-        std::size_t welcome_channel_start =
-            message.find("#" + std::string(twitch_channel));
-        std::size_t welcome_channel_end =
-            ("#" + std::string(twitch_channel)).size();
+        std::size_t welcome_channel_start = message.find(twitch_channel_pound);
+        std::size_t welcome_channel_end = std::size(twitch_channel_pound);
 
         message_receive.replace(
             welcome_user_start,
             welcome_channel_start + welcome_channel_end - welcome_user_start,
             welcome_user + " JOINED");
-    } else if (message.contains("PART")) {
+    }
+
+    if (message.contains("PART")) {
         std::size_t welcome_user_start = message.find(':');
         std::size_t welcome_user_end = message.find('!', welcome_user_start);
 
         std::string welcome_user(message.data() + welcome_user_start + 1,
                                  welcome_user_end - (welcome_user_start + 1));
 
-        std::size_t welcome_channel_start =
-            message.find("#" + std::string(twitch_channel));
-        std::size_t welcome_channel_end =
-            ("#" + std::string(twitch_channel)).size();
+        std::size_t welcome_channel_start = message.find(twitch_channel_pound);
+        std::size_t welcome_channel_end = std::size(twitch_channel_pound);
 
         message_receive.replace(
             welcome_user_start,
