@@ -33,6 +33,13 @@ if true then
 	add_defines("DONT_SHOW_OAUTH")
 end
 
+option("SHOW_RAW_MESSAGE")
+if true then 
+	set_showmenu(true)
+	set_default(false)
+	add_defines("SHOW_RAW_MESSAGE")
+end 
+
 -- Build the Twitch bot.
 target("exe")
 if true then
@@ -50,6 +57,7 @@ if true then
 	add_options("bot_username")
 	add_options("DECL_BADGE_FEATURE")
 	add_options("DONT_SHOW_OAUTH")
+	add_options("SHOW_RAW_MESSAGE")
 
 	add_defines('OAUTH="' .. tostring(get_config("oauth")) .. '"')
 	add_defines('CHANNEL="' .. tostring(get_config("twitch_channel")) .. '"')

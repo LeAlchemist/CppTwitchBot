@@ -85,9 +85,11 @@ message_username() -> message_username {
 
 void
 message_badges() {
-    // get if user is broadcaster
-    // this could also be modified for other terms such as "subscriber",
-    // "premium"... found here https://dev.twitch.tv/docs/irc/tags/
+    // get if user is "broadcaster", "subscriber", or "premium"... info found
+    // here https://dev.twitch.tv/docs/irc/tags/
+    //
+    // information about badge icons can be found here:
+    // https://help.twitch.tv/s/article/twitch-chat-badges-guide?language=en_US
     std::string badges = "badges=";
     std::size_t badges_start = message.find(badges);
     assert(badges_start != message.npos);
@@ -116,10 +118,20 @@ message_badges() {
         name##_tier = lambda(#name "/");                              \
     }
 
+    // admin badge link:
+    // https://static-cdn.jtvnw.net/badges/v1/9ef7e029-4cdf-4d4d-a0d5-e2b3fb2583fe/1
     DECL_BADGE(admin);
+    // I might have to rework the bits badge request, since certain amount of
+    // bits will change the badge icon
     DECL_BADGE(bits);
+    // broadcaster badge link:
+    // https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/1
     DECL_BADGE(broadcaster);
+    // moderator badge link:
+    // https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/1
     DECL_BADGE(moderator);
+    // subscriber badges are channel specific and might need to be requested by
+    // an actual registered twitch bot
     DECL_BADGE(subscriber);
     if (is_subscriber) {
         std::string badge_info = "@badge-info=";
@@ -134,8 +146,15 @@ message_badges() {
             badge_subscriber_end -
                 (badge_subscriber_start + subscriber_info.size()));
     }
+    // staff badge link:
+    // https://static-cdn.jtvnw.net/badges/v1/d97c37bd-a6f5-4c38-8f57-4e4bef88af34/1
     DECL_BADGE(staff);
+    // twitch turbo badge link:
+    // https://static-cdn.jtvnw.net/badges/v1/bd444ec6-8f34-4bf9-91f4-af1e3428d80f/1
     DECL_BADGE(turbo);
+    // premium badge link:
+    // https://static-cdn.jtvnw.net/badges/v1/bbbe0db0-a598-423e-86d0-f9fb98ca1933/1
+    // as far as I can tell premium is twitch prime
     DECL_BADGE(premium);
 
 #undef DECL_BADGE
@@ -157,6 +176,9 @@ message_privmsg() {
             fmt::format("{}", fmt::styled(username, fmt::fg(fmt::rgb(hex))));
 
 #ifdef DECL_BADGE_FEATURE
+        // this doesn't do anything yet, much of the functionality I wanted
+        // to add is locked behind registering the app with twitch and getting
+        // their cli oAuth key for http requests
         message_badges();
 #endif
 
@@ -222,6 +244,11 @@ process_chat() {
     if (message.contains("tmi.twitch.tv")) {
         if (message.contains("PRIVMSG")) {
             message_privmsg();
+
+#ifdef SHOW_RAW_MESSAGE
+            println(message_receive);
+#endif
+
         } else {
             // these will be terminal only
             message_welcome();
