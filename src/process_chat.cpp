@@ -60,13 +60,13 @@ message_username() -> message_username {
 
     // get username color
     // twitch/irc uses a hex code value here
-    std::string display_name_color = "color=#";
+    std::string display_name_color = "color=";
     std::size_t user_color_start = message.find(display_name_color);
     assert(user_color_start != message.npos);
     std::size_t user_color_end =
         message.find(';', user_color_start + display_name_color.size());
     std::string user_color(
-        message.data() + user_color_start + display_name_color.size(),
+        message.data() + user_color_start + display_name_color.size() + 1,
         user_color_end - (user_color_start + display_name_color.size()));
     int hex_value;
     // if user doesn't have an assigned color
@@ -100,13 +100,14 @@ message_privmsg() {
         // this doesn't do anything yet, much of the functionality I wanted
         // to add is locked behind registering the app with twitch and getting
         // their cli oAuth key for http requests
-        message_badges();
+        //message_badges();
 #endif
 
         println(user_colored + ": " + chat_msg);
     }
 }
 
+//this doesnt currently work properly
 void
 message_welcome() {
     constexpr char const twitch_channel_pound[] = "#" CHANNEL;
@@ -120,6 +121,7 @@ message_welcome() {
 
         std::size_t welcome_channel_start = message.find(twitch_channel_pound);
         std::size_t welcome_channel_end = std::size(twitch_channel_pound);
+
 
         message_receive.replace(
             welcome_user_start,
@@ -163,16 +165,14 @@ process_chat() {
     stream.read_some(payload_wrapper);
 
     if (message.contains("tmi.twitch.tv")) {
-        if (message.contains("PRIVMSG")) {
-            message_privmsg();
-
+       if (message.contains("PRIVMSG")) {
 #ifdef SHOW_RAW_MESSAGE
             println(message_receive);
 #endif
-
+            message_privmsg();
         } else {
             // these will be terminal only
-            message_welcome();
+            //message_welcome();
             println(message_receive);
             message_keep_alive();
         }
